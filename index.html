@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Verse - Patient Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .radium-blue {
+            background-color: #00a8e8;
+        }
+        .loading-spinner {
+            border-top-color: #00a8e8;
+            animation: spin 1s linear infinite;
+        }
+        .nav-item:hover {
+            background-color: rgba(0, 168, 232, 0.2);
+        }
+        .section {
+            display: none;
+        }
+        .active-section {
+            display: block;
+        }
+        .doctor-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .dark-mode {
+            background-color: #1a202c;
+            color: #e2e8f0;
+        }
+        .dark-mode .card {
+            background-color: #2d3748;
+            color: #e2e8f0;
+        }
+        .dark-mode .nav-item:hover {
+            background-color: rgba(0, 168, 232, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 transition-colors duration-300">
+    <!-- Loading Screen -->
+    <div id="loading" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center z-50 transition-opacity duration-500">
+        <div class="flex flex-col items-center">
+            <div class="w-16 h-16 border-4 border-gray-300 rounded-full loading-spinner mb-4"></div>
+            <div class="text-white text-2xl font-bold mb-2">Health Verse</div>
+            <div class="text-gray-300">Loading your health data...</div>
+        </div>
+    </div>
+
+    <!-- Login Screen -->
+    <div id="login" class="fixed inset-0 bg-gray-900 bg-opacity-90 flex items-center justify-center z-40 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
+            <div class="flex justify-center mb-8">
+                <div class="text-3xl font-bold text-gray-800">Health Verse</div>
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 mb-2" for="email">Email</label>
+                <input type="email" id="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your email">
+            </div>
+            <div class="mb-6">
+                <label class="block text-gray-700 mb-2" for="password">Password</label>
+                <input type="password" id="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Enter your password">
+            </div>
+            <button id="login-btn" class="w-full radium-blue text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200 font-medium">Login</button>
+            <div class="mt-4 text-center text-gray-600">
+                New to Health Verse? <a href="#" class="text-blue-500 hover:underline">Register here</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Container -->
+    <div id="app" class="hidden">
+        <!-- Navigation Bar -->
+        <nav class="bg-gray-800 text-white p-4 flex justify-between items-center">
+            <div class="flex items-center">
+                <div class="text-2xl font-bold mr-8">Health Verse</div>
+                <div id="profile-pic" class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold cursor-pointer">
+                    JP
+                </div>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="#" class="nav-item px-3 py-2 rounded-lg" data-section="home">Home</a>
+                <a href="#" class="nav-item px-3 py-2 rounded-lg" data-section="qr-access">QR Access</a>
+                <a href="#" class="nav-item px-3 py-2 rounded-lg" data-section="profile">Profile Overview</a>
+                <a href="#" class="nav-item px-3 py-2 rounded-lg" data-section="medical-history">Medical History</a>
+                <a href="#" class="nav-item px-3 py-2 rounded-lg" data-section="current-disease">Current Disease</a>
+                <a href="#" class="nav-item px-3 py-2 rounded-lg" data-section="vaccination">Vaccination</a>
+                <a href="#" class="nav-item px-3 py-2 rounded-lg" data-section="doctors">Talk with Doctors</a>
+                <a href="#" class="nav-item px-3 py-2 rounded-lg" data-section="settings">Settings</a>
+                <a href="#" class="nav-item px-3 py-2 rounded-lg text-red-400 hover:text-red-600" data-section="logout">Logout</a>
+            </div>
+            <button id="mobile-menu-btn" class="md:hidden text-white focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </nav>
+
+        <!-- Mobile Navigation Menu -->
+        <div id="mobile-menu" class="hidden md:hidden bg-gray-700 text-white">
+            <a href="#" class="block px-4 py-3 nav-item" data-section="home">Home</a>
+            <a href="#" class="block px-4 py-3 nav-item" data-section="qr-access">QR Access</a>
+            <a href="#" class="block px-4 py-3 nav-item" data-section="profile">Profile Overview</a>
+            <a href="#" class="block px-4 py-3 nav-item" data-section="medical-history">Medical History</a>
+            <a href="#" class="block px-4 py-3 nav-item" data-section="current-disease">Current Disease</a>
+            <a href="#" class="block px-4 py-3 nav-item" data-section="vaccination">Vaccination</a>
+            <a href="#" class="block px-4 py-3 nav-item" data-section="doctors">Talk with Doctors</a>
+            <a href="#" class="block px-4 py-3 nav-item" data-section="settings">Settings</a>
+            <a href="#" class="block px-4 py-3 nav-item text-red-400" data-section="logout">Logout</a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="container mx-auto p-4">
+            <!-- Home Section -->
+            <section id="home" class="section active-section">
+                <div class="mb-8">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/e88dea7f-566c-475c-ad07-0bb3fac29a68.png" alt="Modern hospital facility with advanced medical equipment and smiling healthcare professionals" class="w-full rounded-lg shadow-md">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="col-span-2">
+                        <div class="bg-white rounded-lg shadow-md p-6">
+                            <h2 class="text-2xl font-bold mb-4 text-gray-800">Welcome back, John</h2>
+                            <p class="text-gray-600 mb-4">Your health journey continues. Here's an overview of your recent activities and important health metrics.</p>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-blue-50 p-4 rounded-lg">
+                                    <div class="text-blue-800 font-bold text-xl mb-2">85%</div>
+                                    <div class="text-blue-600">Last Checkup Score</div>
+                                </div>
+                                <div class="bg-green-50 p-4 rounded-lg">
+                                    <div class="text-green-800 font-bold text-xl mb-2">7</div>
+                                    <div class="text-green-600">Days Streak</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-xl font-bold mb-4 text-gray-800">Quick Actions</h2>
+                        <button class="w-full mb-3 radium-blue text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200" data-section="qr-access">View QR Code</button>
+                        <button class="w-full mb-3 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition duration-200">Book Appointment</button>
+                        <button class="w-full mb-3 bg-gray-200 text-gray-800 py-2 rounded-lg hover:bg-gray-300 transition duration-200">Upload Documents</button>
+                        <button class="w-full mb-3 bg-red-100 text-red-700 py-2 rounded-lg hover:bg-red-200 transition duration-200" data-section="logout">Logout</button>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">Daily Health Streaks</h2>
+                    <div class="flex space-x-2 mb-4">
+                        <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">M</div>
+                        <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">T</div>
+                        <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">W</div>
+                        <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">T</div>
+                        <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center text-white">F</div>
+                        <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">S</div>
+                        <div class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">S</div>
+                    </div>
+                    <p class="text-gray-600">Keep going! Your medication adherence streak is strong this week.</p>
+                </div>
+            </section>
+
+            <!-- QR Access Section -->
+            <section id="qr-access" class="section">
+                <div class="bg-white rounded-lg shadow-md p-8 text-center">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800">Your Health QR Code</h2>
+                    <div class="mb-6">
+                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/77d64c38-8a6c-42b4-91cd-cd719ec57c37.png" alt="Sample QR code graphic with blue and black pattern representing patient medical ID" class="mx-auto">
+                    </div>
+                    <p class="text-gray-600 mb-6">This QR code contains your essential health information. Show it to medical professionals during emergencies.</p>
+                    <div class="flex justify-center space-x-4">
+                        <button class="radium-blue text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-200">Download QR</button>
+                        <button class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition duration-200">Share</button>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+                    <h3 class="text-xl font-bold mb-4 text-gray-800">Access History</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full">
+                            <thead>
+                                <tr>
+                                    <th class="text-left py-2">Date</th>
+                                    <th class="text-left py-2">Accessed By</th>
+                                    <th class="text-left py-2">Purpose</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-b">
+                                    <td class="py-3">2023-11-15</td>
+                                    <td>City General Hospital</td>
+                                    <td>Emergency</td>
+                                </tr>
+                                <tr class="border-b">
+                                    <td class="py-3">2023-10-28</td>
+                                    <td>Dr. Smith</td>
+                                    <td>Consultation</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3">2023-09-10</td>
+                                    <td>Central Pharmacy</td>
+                                    <td>Prescription</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Profile Overview Section -->
+            <section id="profile" class="section">
+                <div class="bg-white rounded-lg shadow-md overflow-hidden mb-8">
+                    <div class="radium-blue p-6 text-white">
+                        <div class="flex items-center">
+                            <div class="w-20 h-20 rounded-full bg-blue-300 flex items-center justify-center text-white text-3xl font-bold mr-6">JP</div>
+                            <div>
+                                <h2 class="text-2xl font-bold">John Peterson</h2>
+                                <p class="text-blue-100">Male, 42 years</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Personal Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <p class="text-gray-600"><span class="font-medium">Date of Birth:</span> June 15, 1981</p>
+                                <p class="text-gray-600"><span class="font-medium">Blood Group:</span> A+</p>
+                                <p class="text-gray-600"><span class="font-medium">Height:</span> 178 cm</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600"><span class="font-medium">Weight:</span> 82 kg</p>
+                                <p class="text-gray-600"><span class="font-medium">Allergies:</span> Penicillin, Pollen</p>
+                                <p class="text-gray-600"><span class="font-medium">Emergency Contact:</span> Sarah Peterson (Wife) - 555-987-6543</p>
+                            </div>
+                        </div>
+                        
+                        <h3 class="text-xl font-bold mt-8 mb-4 text-gray-800">Contact Details</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <p class="text-gray-600"><span class="font-medium">Address:</span> 123 Main Street, Apt 4B, New York, NY 10001</p>
+                                <p class="text-gray-600"><span class="font-medium">Phone:</span> 555-123-4567</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600"><span class="font-medium">Email:</span> john.peterson@example.com</p>
+                                <p class="text-gray-600"><span class="font-medium">Insurance:</span> Blue Cross Blue Shield (ID: BCBS123456789)</p>
+                            </div>
+                        </div>
+                        
+                        <button class="mt-6 radium-blue text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-200">Edit Profile</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Medical History Section -->
+            <section id="medical-history" class="section">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800">Medical History</h2>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Past Surgeries</h3>
+                        <div class="space-y-4">
+                            <div class="border-l-4 border-blue-500 pl-4 py-2">
+                                <div class="flex justify-between">
+                                    <h4 class="font-bold text-gray-800">Appendectomy</h4>
+                                    <span class="text-gray-600">2005</span>
+                                </div>
+                                <p class="text-gray-600">Performed at City General Hospital</p>
+                            </div>
+                            <div class="border-l-4 border-blue-500 pl-4 py-2">
+                                <div class="flex justify-between">
+                                    <h4 class="font-bold text-gray-800">Knee Arthroscopy</h4>
+                                    <span class="text-gray-600">2012</span>
+                                </div>
+                                <p class="text-gray-600">Right knee repair after sports injury</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Hospitalizations</h3>
+                        <div class="space-y-4">
+                            <div class="border-l-4 border-blue-500 pl-4 py-2">
+                                <div class="flex justify-between">
+                                    <h4 class="font-bold text-gray-800">Pneumonia</h4>
+                                    <span class="text-gray-600">2018 (3 days)</span>
+                                </div>
+                                <p class="text-gray-600">Treated with antibiotics at Metro Medical Center</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Chronic Conditions</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-blue-800">Hypertension</h4>
+                                <p class="text-blue-600">Diagnosed 2015, managed with medication</p>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-blue-800">Asthma</h4>
+                                <p class="text-blue-600">Mild intermittent, childhood onset</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button class="radium-blue text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-200">Add New Record</button>
+                </div>
+            </section>
+
+            <!-- Current Disease Section -->
+            <section id="current-disease" class="section">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800">Current Health Conditions</h2>
+                    
+                    <div class="mb-8">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold text-gray-800">Active Diagnoses</h3>
+                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm">Stable</span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-bold text-gray-800 mb-2">Hypertension</h4>
+                                <p class="text-gray-600 mb-2">Last Reading: 128/82 mmHg (2023-11-10)</p>
+                                <p class="text-gray-600">Medication: Lisinopril 10mg daily</p>
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <h4 class="font-bold text-gray-800 mb-2">Type 2 Diabetes</h4>
+                                <p class="text-gray-600 mb-2">Last A1C: 6.2% (2023-10-15)</p>
+                                <p class="text-gray-600">Medication: Metformin 500mg twice daily</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Recent Symptoms</h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                                <span class="text-gray-800">Occasional headaches (last reported 2023-11-12)</span>
+                            </div>
+                            <div class="flex items-center">
+                                <div class="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                                <span class="text-gray-800">Seasonal allergies (active since October 2023)</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Current Medications</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr class="border-b">
+                                        <th class="text-left py-2">Medication</th>
+                                        <th class="text-left py-2">Dosage</th>
+                                        <th class="text-left py-2">Frequency</th>
+                                        <th class="text-left py-2">Prescribed</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b">
+                                        <td class="py-3">Lisinopril</td>
+                                        <td>10mg</td>
+                                        <td>Daily</td>
+                                        <td>Dr. Smith (2022-03-15)</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="py-3">Metformin</td>
+                                        <td>500mg</td>
+                                        <td>Twice daily</td>
+                                        <td>Dr. Lee (2023-01-10)</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="py-3">Albuterol Inhaler</td>
+                                        <td>90 mcg</td>
+                                        <td>As needed</td>
+                                        <td>Dr. Smith (2021-11-20)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <button class="radium-blue text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-200">Report New Symptom</button>
+                </div>
+            </section>
+
+            <!-- Vaccination Section -->
+            <section id="vaccination" class="section">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800">Vaccination Records</h2>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Recommended Vaccines</h3>
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <div class="ml-3">
+                                    <p class="text-sm text-yellow-700">
+                                        Your annual flu shot is due. <a href="#" class="font-medium underline text-yellow-700 hover:text-yellow-600">Schedule now</a>.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-4">
+                            <div class="border-l-4 border-blue-500 pl-4 py-2">
+                                <div class="flex justify-between items-center">
+                                    <div>
+                                        <h4 class="font-bold text-gray-800">Influenza (annual)</h4>
+                                        <p class="text-gray-600">Due November 2023</p>
+                                    </div>
+                                    <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm">Overdue</span>
+                                </div>
+                            </div>
+                            <div class="border-l-4 border-green-500 pl-4 py-2">
+                                <div class="flex justify-between">
+                                    <div>
+                                        <h4 class="font-bold text-gray-800">COVID-19 Booster</h4>
+                                        <p class="text-gray-600">Next dose recommended January 2024</p>
+                                    </div>
+                                    <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">Upcoming</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Completed Vaccinations</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr class="border-b">
+                                        <th class="text-left py-2">Vaccine</th>
+                                        <th class="text-left py-2">Date</th>
+                                        <th class="text-left py-2">Provider</th>
+                                        <th class="text-left py-2">Next Dose</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="border-b">
+                                        <td class="py-3">COVID-19 (Pfizer)</td>
+                                        <td>2021-04-15</td>
+                                        <td>City Pharmacy</td>
+                                        <td>Completed</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="py-3">COVID-19 Booster</td>
+                                        <td>2022-11-20</td>
+                                        <td>City Pharmacy</td>
+                                        <td>January 2024</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="py-3">Influenza</td>
+                                        <td>2022-10-05</td>
+                                        <td>Workplace Clinic</td>
+                                        <td>November 2023</td>
+                                    </tr>
+                                    <tr class="border-b">
+                                        <td class="py-3">Tetanus/Diphtheria</td>
+                                        <td>2020-03-12</td>
+                                        <td>Dr. Smith</td>
+                                        <td>2025-2030</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <button class="radium-blue text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-200">Upload New Record</button>
+                </div>
+            </section>
+
+            <!-- Talk with Doctors Section -->
+            <section id="doctors" class="section">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800">Talk with Doctors</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="doctor-card bg-white border border-gray-200 rounded-lg p-4 transition duration-200 cursor-pointer">
+                            <div class="flex items-center mb-4">
+                                <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 font-bold text-xl mr-4">RS</div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800">Dr. Robert Smith</h4>
+                                    <p class="text-gray-600 text-sm">Cardiologist</p>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 mb-4">Your last consultation was on 2023-10-25</p>
+                            <button class="w-full radium-blue text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200">Message</button>
+                        </div>
+                        
+                        <div class="doctor-card bg-white border border-gray-200 rounded-lg p-4 transition duration-200 cursor-pointer">
+                            <div class="flex items-center mb-4">
+                                <div class="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center text-green-500 font-bold text-xl mr-4">AL</div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800">Dr. Angela Lee</h4>
+                                    <p class="text-gray-600 text-sm">Endocrinologist</p>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 mb-4">Available for appointments tomorrow</p>
+                            <button class="w-full radium-blue text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200">Message</button>
+                        </div>
+                        
+                        <div class="doctor-card bg-white border border-gray-200 rounded-lg p-4 transition duration-200 cursor-pointer">
+                            <div class="flex items-center mb-4">
+                                <div class="w-16 h-16 rounded-full bg-purple-100 flex items-center justify-center text-purple-500 font-bold text-xl mr-4">KP</div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800">Dr. Karen Patel</h4>
+                                    <p class="text-gray-600 text-sm">Primary Care</p>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 mb-4">Requested lab results, awaiting reply</p>
+                            <button class="w-full radium-blue text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200">Message</button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Recent Conversations</h3>
+                        <div class="space-y-4">
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold mr-3">RS</div>
+                                        <div>
+                                            <h4 class="font-bold text-gray-800">Dr. Smith</h4>
+                                            <p class="text-gray-600 text-sm">Cardiologist</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-gray-500 text-sm">2023-11-10</span>
+                                </div>
+                                <div class="bg-blue-50 p-3 rounded-lg mb-2">
+                                    <p class="text-gray-800">Your latest blood pressure readings look much better. Let's keep monitoring weekly.</p>
+                                </div>
+                                <div class="p-3 rounded-lg bg-gray-50">
+                                    <p class="text-gray-800">Thank you doctor, will do. Should I continue with the current medication?</p>
+                                </div>
+                                <button class="mt-2 text-blue-500 hover:underline text-sm">Continue conversation</button>
+                            </div>
+                            
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <div class="flex items-center">
+                                        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 font-bold mr-3">KP</div>
+                                        <div>
+                                            <h4 class="font-bold text-gray-800">Dr. Patel</h4>
+                                            <p class="text-gray-600 text-sm">Primary Care</p>
+                                        </div>
+                                    </div>
+                                    <span class="text-gray-500 text-sm">2023-11-05</span>
+                                </div>
+                                <div class="bg-blue-50 p-3 rounded-lg mb-2">
+                                    <p class="text-gray-800">I've reviewed your lab results. Your cholesterol levels have improved significantly since starting the new diet.</p>
+                                </div>
+                                <button class="mt-2 text-blue-500 hover:underline text-sm">Continue conversation</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="section">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-6 text-gray-800">Settings</h2>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Appearance</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="font-medium text-gray-800">Dark Mode</p>
+                                    <p class="text-gray-600 text-sm">Switch between light and dark theme</p>
+                                </div>
+                                <button id="toggle-dark-mode" class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                    <span class="sr-only">Dark mode</span>
+                                    <span id="toggle-circle" class="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform translate-x-1"></span>
+                                </button>
+                            </div>
+                            <div>
+                                <p class="font-medium text-gray-800">Font Size</p>
+                                <p class="text-gray-600 text-sm mb-2">Adjust the text size for better readibility</p>
+                                <div class="flex items-center space-x-2">
+                                    <button class="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100">Small</button>
+                                    <button class="px-3 py-1 text-sm border rounded-lg bg-blue-50 text-blue-600 border-blue-200">Medium</button>
+                                    <button class="px-3 py-1 text-sm border rounded-lg hover:bg-gray-100">Large</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Notifications</h3>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="font-medium text-gray-800">Appointment Reminders</p>
+                                    <p class="text-gray-600 text-sm">Get notified before doctor visits</p>
+                                </div>
+                                <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                                    <input type="checkbox" id="appointment-toggle" class="sr-only" checked>
+                                    <label for="appointment-toggle" class="block overflow-hidden h-6 rounded-full bg-blue-500 cursor-pointer">
+                                        <span class="absolute block w-4 h-4 rounded-full bg-white shadow top-1 right-1 transition-all duration-200 ease-linear"></span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="font-medium text-gray-800">Medication Alerts</p>
+                                    <p class="text-gray-600 text-sm">Remind me to take medications</p>
+                                </div>
+                                <div class="relative inline-block w-10 mr-2 align-middle select-none">
+                                    <input type="checkbox" id="medication-toggle" class="sr-only" checked>
+                                    <label for="medication-toggle" class="block overflow-hidden h-6 rounded-full bg-blue-500 cursor-pointer">
+                                        <span class="absolute block w-4 h-4 rounded-full bg-white shadow top-1 right-1 transition-all duration-200 ease-linear"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Help & Support</h3>
+                        <div class="space-y-2">
+                            <a href="#" class="block px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200">
+                                <p class="font-medium text-gray-800">Help Center</p>
+                                <p class="text-gray-600 text-sm">Find answers to common questions</p>
+                            </a>
+                            <a href="#" class="block px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200">
+                                <p class="font-medium text-gray-800">Community Forum</p>
+                                <p class="text-gray-600 text-sm">Connect with other users</p>
+                            </a>
+                            <a href="#" class="block px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200">
+                                <p class="font-medium text-gray-800">Contact Support</p>
+                                <p class="text-gray-600 text-sm">Get help from our support team</p>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Account</h3>
+                        <a href="#" class="block px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200 mb-2">
+                            <p class="font-medium text-gray-800">Change Password</p>
+                        </a>
+                        <a href="#" class="block px-4 py-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-200">
+                            <p class="font-medium text-gray-800">Delete Account</p>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Logout Section -->
+            <section id="logout" class="section">
+                <div class="bg-white rounded-lg shadow-md p-8 text-center">
+                    <div class="w-20 h-20 mx-auto mb-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Are you sure you want to logout?</h2>
+                    <p class="text-gray-600 mb-6">You'll need to sign in again to access your health records.</p>
+                    <div class="flex justify-center space-x-4">
+                        <button id="confirm-logout" class="radium-blue text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition duration-200">Yes, Logout</button>
+                        <button id="cancel-logout" class="bg-gray-200 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-300 transition duration-200">Cancel</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script>
+        // Simulate loading screen
+        setTimeout(() => {
+            document.getElementById('loading').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('login').classList.remove('hidden');
+            }, 500);
+        }, 2000);
+
+        // Login functionality
+        document.getElementById('login-btn').addEventListener('click', () => {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if(email && password) {
+                document.getElementById('login').classList.add('hidden');
+                document.getElementById('app').classList.remove('hidden');
+                
+                // Set the profile initials
+                const names = email.split('@')[0].split('.');
+                const initials = names.map(name => name.charAt(0).toUpperCase()).join('');
+                document.getElementById('profile-pic').textContent = initials;
+            } else {
+                alert('Please enter both email and password');
+            }
+        });
+
+        // Navigation functionality
+        const navItems = document.querySelectorAll('.nav-item, #mobile-menu a');
+        const sections = document.querySelectorAll('.section');
+        
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const sectionId = item.getAttribute('data-section');
+                
+                // Hide all sections
+                sections.forEach(section => {
+                    section.classList.remove('active-section');
+                });
+                
+                // Show selected section
+                document.getElementById(sectionId).classList.add('active-section');
+                
+                // Close mobile menu if open
+                document.getElementById('mobile-menu').classList.add('hidden');
+            });
+        });
+
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+
+        // Dark mode toggle
+        document.getElementById('toggle-dark-mode').addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const circle = document.getElementById('toggle-circle');
+            if(document.body.classList.contains('dark-mode')) {
+                circle.classList.remove('translate-x-1');
+                circle.classList.add('translate-x-6');
+                document.getElementById('toggle-dark-mode').classList.remove('bg-gray-200');
+                document.getElementById('toggle-dark-mode').classList.add('bg-gray-700');
+            } else {
+                circle.classList.remove('translate-x-6');
+                circle.classList.add('translate-x-1');
+                document.getElementById('toggle-dark-mode').classList.remove('bg-gray-700');
+                document.getElementById('toggle-dark-mode').classList.add('bg-gray-200');
+            }
+        });
+
+        // Show logout confirmation
+        document.querySelector('a[data-section="logout"]').addEventListener('click', (e) => {
+            e.preventDefault();
+            sections.forEach(section => {
+                section.classList.remove('active-section');
+            });
+            document.getElementById('logout').classList.add('active-section');
+        });
+
+        // Cancel logout
+        document.getElementById('cancel-logout').addEventListener('click', () => {
+            document.getElementById('logout').classList.remove('active-section');
+            document.getElementById('home').classList.add('active-section');
+        });
+
+        // Confirm logout
+        document.getElementById('confirm-logout').addEventListener('click', () => {
+            document.getElementById('app').classList.add('hidden');
+            document.getElementById('logout').classList.remove('active-section');
+            document.getElementById('login').classList.remove('hidden');
+            
+            // Reset form
+            document.getElementById('email').value = '';
+            document.getElementById('password').value = '';
+            
+            // Show loading screen again
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('loading').style.opacity = '1';
+            
+            setTimeout(() => {
+                document.getElementById('loading').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading').classList.add('hidden');
+                }, 500);
+            }, 1500);
+        });
+    </script>
+</body>
+</html>

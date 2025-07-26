@@ -69,9 +69,10 @@
 
 ## 🧑‍💻 Team
 
-- **Saurav Kumar Rana** – Developer & Blockchain Integrator  
-- *(Add other team members with roles if applicable)*
-
+- Saurav Kumar Rana – Frontend developer   
+- Raziudin - Backend developer
+- Sahu Ravi Kumar - Researcher
+- Yashwant vadluri - Pitcher
 ---
 
 ## 📎 Resources
